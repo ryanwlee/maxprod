@@ -1,11 +1,10 @@
 import React from "react";
 import { withStyles } from "@material-ui/core/styles";
-import { Container, AppBar, Button, Modal, TextField } from "@material-ui/core";
+import { Container, Button, Modal, TextField } from "@material-ui/core";
 import AlarmIcon from "@material-ui/icons/Alarm";
 import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline";
 import PlayCircleOutlineIcon from "@material-ui/icons/PlayCircleOutline";
 import blue from "@material-ui/core/colors/blue";
-import uniqid from "uniqid";
 import Task from "./Components/Task";
 
 const useStyles = theme => ({
@@ -45,12 +44,15 @@ const useStyles = theme => ({
   }
 });
 
+const apiServerUrl = "http://127.0.0.1:4000/api/tasks";
+
 class App extends React.Component {
   constructor(props) {
     super(props);
+
     this.state = {
       newTaskOpen: false,
-      tasks: ["I am first task", "I am second task"],
+      tasks: [],
       newtask: ""
     };
     this.displayTasks = this.displayTasks.bind(this);
@@ -59,6 +61,18 @@ class App extends React.Component {
     this.handleNewTaskModalOpen = this.handleNewTaskModalOpen.bind(this);
     this.handleNewTaskModalClose = this.handleNewTaskModalClose.bind(this);
     this.taskPlaceholderChooser = this.taskPlaceholderChooser.bind(this);
+  }
+
+  async componentDidMount() {
+    const response = await fetch(apiServerUrl, {
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*"
+      }
+    });
+    const tasks = await response.json();
+    console.log(tasks);
+    this.setState({ tasks });
   }
 
   taskPlaceholderChooser() {
@@ -73,9 +87,13 @@ class App extends React.Component {
   }
 
   displayTasks() {
-    return this.state.tasks.map(task => {
-      return <Task key={uniqid()} desc={task} />;
-    });
+    return this.state.tasks.length > 0 ? (
+      this.state.tasks.map(task => {
+        return <Task key={task._id} task={task.task} />;
+      })
+    ) : (
+      <Task desc={"There is no task yet"} />
+    );
   }
 
   onChangeTask(newtask) {
@@ -86,9 +104,26 @@ class App extends React.Component {
     this.handleNewTaskModalOpen();
   }
 
-  addTask() {
-    let tasks = this.state.tasks;
-    tasks.push(this.state.newtask);
+  async addTask() {
+    const data = JSON.stringify({ task: this.state.newtask });
+    const postResponse = await fetch(apiServerUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*"
+      },
+      body: data
+    });
+    const result = await postResponse.json();
+    console.log(result);
+
+    const getResponse = await fetch(apiServerUrl, {
+      headers: {
+        "Content-Type": "applicatio/json",
+        "Access-Control-Allow-Origin": "*"
+      }
+    });
+    const tasks = await getResponse.json();
     this.setState({ tasks, newtask: "" });
 
     this.handleNewTaskModalClose();

@@ -1,6 +1,6 @@
 import React from "react";
 import { withStyles } from "@material-ui/core/styles";
-import { Card, CardHeader, CardContent, Typography } from "@material-ui/core";
+import { Card, CardContent, Typography } from "@material-ui/core";
 
 const useStyles = theme => ({
   Task: {
@@ -10,17 +10,13 @@ const useStyles = theme => ({
 });
 
 class Task extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
   render() {
     const { classes } = this.props;
     return (
       <Card className={classes.Task}>
         <CardContent>
           <Typography variant="body2" color="textSecondary" component="p">
-            {this.props.desc}
+            {this.props.task}
           </Typography>
         </CardContent>
       </Card>
