@@ -1,6 +1,12 @@
 import React from "react";
 import { withStyles } from "@material-ui/core/styles";
-import { Container, Button, Modal, TextField } from "@material-ui/core";
+import {
+  Container,
+  Button,
+  Modal,
+  TextField,
+  Typography
+} from "@material-ui/core";
 import AlarmIcon from "@material-ui/icons/Alarm";
 import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline";
 import PlayCircleOutlineIcon from "@material-ui/icons/PlayCircleOutline";
@@ -33,6 +39,18 @@ const useStyles = theme => ({
     marginTop: "70px",
     borderRadius: "5px"
   },
+  PlayTaskModal: {
+    position: "absolute",
+    width: "300px",
+    height: "300px",
+    backgroundColor: theme.palette.background.paper,
+    border: "none",
+    boxShadow: theme.shadows[5],
+    left: "calc(50% - 150px)",
+    outline: "none",
+    marginTop: "70px",
+    borderRadius: "5px"
+  },
   TaskInput: {
     width: "90%",
     marginLeft: "5%",
@@ -45,6 +63,7 @@ const useStyles = theme => ({
 });
 
 const apiServerUrl = "http://127.0.0.1:4000/api/tasks";
+const timeInterval = 2000;
 
 class App extends React.Component {
   constructor(props) {
@@ -52,15 +71,24 @@ class App extends React.Component {
 
     this.state = {
       newTaskOpen: false,
+      playTaskOpen: false,
       tasks: [],
-      newtask: ""
+      newtask: "",
+      curTask: 0,
+      seconds: timeInterval
     };
+
+    this.intervalHandle = null;
+
     this.displayTasks = this.displayTasks.bind(this);
-    this.addTaskButtonHandler = this.addTaskButtonHandler.bind(this);
     this.addTask = this.addTask.bind(this);
     this.handleNewTaskModalOpen = this.handleNewTaskModalOpen.bind(this);
     this.handleNewTaskModalClose = this.handleNewTaskModalClose.bind(this);
     this.taskPlaceholderChooser = this.taskPlaceholderChooser.bind(this);
+    this.handlePlayTaskModalOpen = this.handlePlayTaskModalOpen.bind(this);
+    this.handlePlayTaskModalClose = this.handlePlayTaskModalClose.bind(this);
+    this.tick = this.tick.bind(this);
+    this.countdown = this.countdown.bind(this);
   }
 
   async componentDidMount() {
@@ -71,7 +99,6 @@ class App extends React.Component {
       }
     });
     const tasks = await response.json();
-    console.log(tasks);
     this.setState({ tasks });
   }
 
@@ -100,10 +127,6 @@ class App extends React.Component {
     this.setState({ newtask });
   }
 
-  addTaskButtonHandler() {
-    this.handleNewTaskModalOpen();
-  }
-
   async addTask() {
     const data = JSON.stringify({ task: this.state.newtask });
     const postResponse = await fetch(apiServerUrl, {
@@ -129,12 +152,42 @@ class App extends React.Component {
     this.handleNewTaskModalClose();
   }
 
+  handlePlayTaskModalOpen() {
+    this.countdown();
+    this.setState({ playTaskOpen: true });
+  }
+
+  handlePlayTaskModalClose() {
+    clearInterval(this.intervalHandle);
+    this.setState({ playTaskOpen: false });
+  }
+
   handleNewTaskModalOpen() {
     this.setState({ newTaskOpen: true });
   }
 
   handleNewTaskModalClose() {
     this.setState({ newTaskOpen: false });
+  }
+
+  tick() {
+    let seconds = this.state.seconds;
+    let curTask = this.state.curTask;
+
+    if (seconds === 0) {
+      clearInterval(this.intervalHandle);
+      this.setState({
+        curTask: curTask === this.state.tasks.length - 1 ? 0 : curTask + 1,
+        seconds: timeInterval
+      });
+      this.countdown();
+    } else {
+      this.setState({ seconds: seconds - 1000 });
+    }
+  }
+
+  countdown() {
+    this.intervalHandle = setInterval(this.tick, 1000);
   }
 
   render() {
@@ -145,10 +198,13 @@ class App extends React.Component {
           <div className={classes.ButtonContainer}>
             <AlarmIcon className={classes.Button} />
             <AddCircleOutlineIcon
-              onClick={this.addTaskButtonHandler}
+              onClick={this.handleNewTaskModalOpen}
               className={classes.Button}
             />
-            <PlayCircleOutlineIcon className={classes.Button} />
+            <PlayCircleOutlineIcon
+              onClick={this.handlePlayTaskModalOpen}
+              className={classes.Button}
+            />
           </div>
           {this.displayTasks()}
         </Container>
@@ -180,6 +236,23 @@ class App extends React.Component {
                 Add
               </Button>
             </form>
+          </div>
+        </Modal>
+        <Modal
+          aria-labelledby="simple-modal-title"
+          aria-describedby="simple-modal-description"
+          open={this.state.playTaskOpen}
+          onClose={this.handlePlayTaskModalClose}
+        >
+          <div className={classes.PlayTaskModal}>
+            <Typography variant="body2" component="p">
+              {this.state.tasks.length > 0
+                ? this.state.tasks[this.state.curTask].task
+                : "No task"}
+            </Typography>
+            <Typography variant="body2" component="p">
+              {this.state.seconds}
+            </Typography>
           </div>
         </Modal>
       </div>
