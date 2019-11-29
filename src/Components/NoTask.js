@@ -13,7 +13,7 @@ const useStyles = theme => ({
   }
 });
 
-class Task extends React.Component {
+class NoTask extends React.Component {
   render() {
     const { classes } = this.props;
 
@@ -21,9 +21,7 @@ class Task extends React.Component {
       <Card className={classes.Task}>
         <CardContent className={classes.TaskContent}>
           <Typography variant="body2" color="textSecondary" component="p">
-            {this.props.task && this.props.task.length > 35
-              ? this.props.task.slice(0, 35) + " ..."
-              : this.props.task}
+            No task. Let's add new task!
           </Typography>
         </CardContent>
       </Card>
@@ -31,4 +29,4 @@ class Task extends React.Component {
   }
 }
 
-export default withStyles(useStyles)(Task);
+export default withStyles(useStyles)(NoTask);
