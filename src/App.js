@@ -1,21 +1,13 @@
 import React from "react";
 import { withStyles } from "@material-ui/core/styles";
-import {
-  Container,
-  Button,
-  Modal,
-  TextField,
-  Typography,
-  Slider
-} from "@material-ui/core";
-import AlarmIcon from "@material-ui/icons/Alarm";
-import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline";
-import PlayCircleOutlineIcon from "@material-ui/icons/PlayCircleOutline";
+import { Button, Modal, TextField, Typography } from "@material-ui/core";
 import Task from "./Components/Task";
-import NoTask from "./Components/NoTask";
-import { Progress } from "react-sweet-progress";
+import Header from "./Components/Header";
+import SetTimeModal from "./Components/SetTimeModal";
+import ButtonContainer from "./Components/ButtonContainer";
+import PlayTaskModal from "./Components/PlayTaskModal";
 import "react-sweet-progress/lib/style.css";
-import { blue, red } from "@material-ui/core/colors";
+import { red } from "@material-ui/core/colors";
 
 import {
   progressColor,
@@ -25,19 +17,6 @@ import {
 } from "./Helpers";
 
 const useStyles = theme => ({
-  App: {
-    marginTop: "20px",
-    marginBottom: "20px"
-  },
-  Button: {
-    color: blue[800],
-    width: "40px",
-    height: "40px",
-    marginLeft: "10px"
-  },
-  ButtonContainer: {
-    textAlign: "right"
-  },
   NewTaskModal: {
     position: "absolute",
     width: "300px",
@@ -45,60 +24,11 @@ const useStyles = theme => ({
     backgroundColor: theme.palette.background.paper,
     border: "none",
     boxShadow: theme.shadows[5],
-    left: "calc(50% - 150px)",
-    outline: "none",
-    marginTop: "70px",
-    borderRadius: "5px"
-  },
-  PlayTaskModal: {
-    position: "absolute",
-    width: "300px",
-    height: "300px",
-    backgroundColor: theme.palette.background.paper,
-    border: "none",
-    boxShadow: theme.shadows[5],
-    left: "calc(50% - 150px)",
+    left: "calc(50% - 160px)",
     outline: "none",
     marginTop: "70px",
     borderRadius: "5px",
-    padding: "30px 10px 10px 10px",
-    textAlign: "center"
-  },
-  PlayTaskTitle: {},
-  PlayTaskBody: {
-    padding: "20px 0 20px 0",
-    height: "120px",
-    overflowWrap: "break-word"
-  },
-  PlayTaskTime: {},
-  ProgressBar: {
-    margin: "5px auto 20px auto",
-    width: "70%"
-  },
-  FinishedBtn: {},
-  SetTimeModal: {
-    position: "absolute",
-    width: "300px",
-    height: "300px",
-    backgroundColor: theme.palette.background.paper,
-    border: "none",
-    boxShadow: theme.shadows[5],
-    left: "calc(50% - 150px)",
-    outline: "none",
-    marginTop: "70px",
-    borderRadius: "5px",
-    textAlign: "center",
-    padding: "30px 10px 10px 10px"
-  },
-  TimeSlider: {
-    width: "70%",
-    display: "block",
-    marginLeft: "auto",
-    marginRight: "auto",
-    marginTop: "70px"
-  },
-  TimeSliderBtn: {
-    marginTop: "80px"
+    padding: "20px 10px 10px 10px"
   },
   TaskInput: {
     width: "90%",
@@ -153,6 +83,7 @@ class App extends React.Component {
     this.countdown = this.countdown.bind(this);
     this.setTimeInterval = this.setTimeInterval.bind(this);
     this.deleteTask = this.deleteTask.bind(this);
+    this.handleDeleteIcon = this.handleDeleteIcon.bind(this);
   }
 
   async componentDidMount() {
@@ -180,7 +111,14 @@ class App extends React.Component {
   displayTasks() {
     return this.state.tasks.length > 0 ? (
       this.state.tasks.map(task => {
-        return <Task key={task._id} task={task.task} />;
+        return (
+          <Task
+            key={task._id}
+            task={task.task}
+            delete={this.handleDeleteIcon}
+            id={task._id}
+          />
+        );
       })
     ) : (
       <Task desc={"There is no task yet"} />
@@ -218,7 +156,6 @@ class App extends React.Component {
       body: data
     });
     const result = await postResponse.json();
-    console.log(result);
 
     const getResponse = await fetch(apiServerUrl, {
       headers: {
@@ -244,7 +181,6 @@ class App extends React.Component {
       }
     );
     const result = await deleteResponse.json();
-    console.log(result);
 
     const getResponse = await fetch(apiServerUrl, {
       headers: {
@@ -256,6 +192,28 @@ class App extends React.Component {
     const curTask =
       this.state.curTask === tasks.length ? 0 : this.state.curTask;
     this.setState({ tasks, curTask, seconds: 0 });
+  }
+
+  async handleDeleteIcon(id) {
+    console.log(id);
+
+    const deleteResponse = await fetch(apiServerUrl + `/${id}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*"
+      }
+    });
+    const result = await deleteResponse.json();
+
+    const getResponse = await fetch(apiServerUrl, {
+      headers: {
+        "Content-Type": "applicatio/json",
+        "Access-Control-Allow-Origin": "*"
+      }
+    });
+    const tasks = await getResponse.json();
+    this.setState({ tasks });
   }
 
   handleSetTimeModalOpen() {
@@ -318,64 +276,38 @@ class App extends React.Component {
 
   render() {
     const { classes } = this.props;
-    const marks = [
-      { value: 5, label: "5" },
-      { value: 10, label: "10" },
-      { value: 15, label: "15" },
-      { value: 30, label: "30" },
-      { value: 60, label: "60" }
-    ];
 
     return (
       <div>
-        <Container maxWidth="sm" className={classes.App}>
-          <div className={classes.ButtonContainer}>
-            <AlarmIcon
-              onClick={this.handleSetTimeModalOpen}
-              className={classes.Button}
-            />
-            <AddCircleOutlineIcon
-              onClick={this.handleNewTaskModalOpen}
-              className={classes.Button}
-            />
-            <PlayCircleOutlineIcon
-              onClick={this.handlePlayTaskModalOpen}
-              className={classes.Button}
-            />
-          </div>
-          {this.state.tasks.length > 0 ? this.displayTasks() : <NoTask />}
-        </Container>
+        {/* title and subtitle */}
+        <Header />
+
+        {/* buttons container */}
+        <ButtonContainer
+          handleSetTimeModalOpen={this.handleSetTimeModalOpen}
+          handleNewTaskModalOpen={this.handleNewTaskModalOpen}
+          handlePlayTaskModalOpen={this.handlePlayTaskModalOpen}
+          displayTasks={this.displayTasks}
+          taskLength={this.state.tasks.length}
+        />
+
+        {/* hidden modal for setting time interval (default 15 mins) */}
         <Modal
           aria-labelledby="simple-modal-title"
           aria-describedby="simple-modal-description"
           open={this.state.setTimeOpen}
           onClose={this.handleSetTimeModalClose}
         >
-          <div className={classes.SetTimeModal}>
-            <Typography variant="h5" component="p">
-              Time for Each Task
-            </Typography>
-            <Slider
-              defaultValue={this.state.timeInterval / 60000}
-              step={5}
-              marks={marks}
-              valueLabelDisplay="on"
-              valueLabelFormat={m => `${m} m`}
-              max={60}
-              min={5}
-              onChange={(e, v) => this.setTimeInterval(v)}
-              className={classes.TimeSlider}
+          <React.Fragment>
+            <SetTimeModal
+              timeInterval={this.state.timeInterval}
+              setTimeInterval={this.setTimeInterval}
+              handleSetTimeModalClose={this.handleSetTimeModalClose}
             />
-            <Button
-              variant="contained"
-              color="primary"
-              className={classes.TimeSliderBtn}
-              onClick={this.handleSetTimeModalClose}
-            >
-              Set
-            </Button>
-          </div>
+          </React.Fragment>
         </Modal>
+
+        {/* hidden modal for adding new task */}
         <Modal
           aria-labelledby="simple-modal-title"
           aria-describedby="simple-modal-description"
@@ -415,80 +347,40 @@ class App extends React.Component {
             </form>
           </div>
         </Modal>
+
+        {/* hidden modal for working on tasks */}
         <Modal
           aria-labelledby="simple-modal-title"
           aria-describedby="simple-modal-description"
           open={this.state.playTaskOpen}
           onClose={this.handlePlayTaskModalClose}
         >
-          <div className={classes.PlayTaskModal}>
-            <Typography
-              variant="h6"
-              component="p"
-              className={classes.PlayTaskTitle}
-            >
-              {this.state.tasks.length > 0
-                ? "No task"
-                : "You are now working on"}
-            </Typography>
-            <Typography
-              variant="body1"
-              component="p"
-              className={classes.PlayTaskBody}
-            >
-              {this.state.tasks.length > 0
-                ? this.state.tasks[this.state.curTask].task
-                : "Let's be active! Add new task!"}
-            </Typography>
-            {this.state.tasks.length !== 0 ? (
-              <React.Fragment>
-                <Typography
-                  variant="body2"
-                  component="p"
-                  className={classes.PlayTaskTime}
-                >
-                  {secondsToTime(
-                    (this.state.timeInterval - this.state.seconds) / 1000
-                  ) + " remaining"}
-                </Typography>
-                <Progress
-                  percent={timeToPercent(
-                    this.state.seconds,
-                    this.state.timeInterval
-                  )}
-                  status={"default"}
-                  theme={{
-                    default: {
-                      trailColor: progressTrailColor(
-                        timeToPercent(
-                          this.state.seconds,
-                          this.state.timeInterval
-                        )
-                      ),
-                      color: progressColor(
-                        timeToPercent(
-                          this.state.seconds,
-                          this.state.timeInterval
-                        )
-                      ),
-                      symbol: ""
-                    }
-                  }}
-                  className={classes.ProgressBar}
-                />
-                <Button
-                  variant="contained"
-                  color="primary"
-                  className={classes.FinishedBtn}
-                  onClick={this.deleteTask}
-                >
-                  Finished
-                </Button>
-              </React.Fragment>
-            ) : (
-              ""
-            )}
-          </div>
+          <React.Fragment>
+            <PlayTaskModal
+              taskLength={this.state.tasks.length}
+              curTask={
+                this.state.tasks.length > 0
+                  ? this.state.tasks[this.state.curTask].task
+                  : ""
+              }
+              secondsText={
+                secondsToTime(
+                  (this.state.timeInterval - this.state.seconds) / 1000
+                ) + " remaining"
+              }
+              percent={timeToPercent(
+                this.state.seconds,
+                this.state.timeInterval
+              )}
+              trailColor={progressTrailColor(
+                timeToPercent(this.state.seconds, this.state.timeInterval)
+              )}
+              color={progressColor(
+                timeToPercent(this.state.seconds, this.state.timeInterval)
+              )}
+              deleteTask={this.deleteTask}
+            />
+          </React.Fragment>
         </Modal>
       </div>
     );

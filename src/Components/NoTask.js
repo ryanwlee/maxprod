@@ -1,6 +1,7 @@
 import React from "react";
 import { withStyles } from "@material-ui/core/styles";
 import { Card, CardContent, Typography } from "@material-ui/core";
+import { red } from "@material-ui/core/colors";
 
 const useStyles = theme => ({
   Task: {
@@ -9,7 +10,8 @@ const useStyles = theme => ({
   },
   TaskContent: {
     paddingTop: "24px",
-    paddingBottom: "24px"
+    paddingBottom: "24px",
+    color: red[600]
   }
 });
 
@@ -20,7 +22,7 @@ class NoTask extends React.Component {
     return (
       <Card className={classes.Task}>
         <CardContent className={classes.TaskContent}>
-          <Typography variant="body2" color="textSecondary" component="p">
+          <Typography variant="body2" component="p">
             No task. Let's add new task!
           </Typography>
         </CardContent>

@@ -81,5 +81,26 @@ export function timeToPercent(time, timeInterval) {
 export function secondsToTime(seconds) {
   const min = Math.floor(seconds / 60);
   const sec = seconds % 60;
-  return `${min} m:${sec} s`;
+  return `${min}m ${sec}s`;
+}
+
+export function randomColor() {
+  const dark = 200;
+  const colors = [
+    amber[dark],
+    orange[dark],
+    deepOrange[dark],
+    red[dark],
+    pink[dark],
+    purple[dark],
+    deepPurple[dark],
+    indigo[dark],
+    blue[dark],
+    lightBlue[dark],
+    cyan[dark],
+    teal[dark],
+    green[dark]
+  ];
+
+  return colors[Math.floor(Math.random() * 13)];
 }
