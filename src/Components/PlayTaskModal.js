@@ -36,7 +36,9 @@ const useStyles = theme => ({
     margin: "5px auto 20px auto",
     width: "70%"
   },
-  FinishedBtn: {}
+  ResumeBtn: { width: "90px", marginRight: "5px" },
+  NextBtn: { width: "90px", marginRight: "5px" },
+  FinishedBtn: { width: "90px" }
 });
 
 class PlayTaskModal extends React.Component {
@@ -84,14 +86,36 @@ class PlayTaskModal extends React.Component {
               }}
               className={classes.ProgressBar}
             />
-            <Button
-              variant="contained"
-              color="primary"
-              className={classes.FinishedBtn}
-              onClick={this.props.deleteTask}
-            >
-              Finished
-            </Button>
+            <div>
+              <Button
+                variant="contained"
+                color="default"
+                className={classes.NextBtn}
+                onClick={this.props.nextTask}
+              >
+                Next
+              </Button>
+              <Button
+                variant="contained"
+                color="secondary"
+                className={classes.ResumeBtn}
+                onClick={
+                  this.props.isPlaying
+                    ? this.props.pauseTask
+                    : this.props.resumeTask
+                }
+              >
+                {this.props.isPlaying ? "Pause" : "Resume"}
+              </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                className={classes.FinishedBtn}
+                onClick={this.props.deleteTask}
+              >
+                Finished
+              </Button>
+            </div>
           </React.Fragment>
         ) : (
           ""

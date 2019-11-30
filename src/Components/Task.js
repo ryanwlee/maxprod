@@ -3,6 +3,8 @@ import { withStyles } from "@material-ui/core/styles";
 import { Card, CardContent, Typography } from "@material-ui/core";
 import DeleteOutlineIcon from "@material-ui/icons/DeleteOutline";
 import MediaQuery from "react-responsive";
+import { randomColor } from "../Helpers";
+import { grey } from "@material-ui/core/colors";
 
 const useStyles = theme => ({
   Task: {
@@ -19,21 +21,32 @@ const useStyles = theme => ({
   TaskText: {
     gridArea: "task"
   },
-  DeleteIcon: { gridArea: "trash" }
+  DeleteIcon: { gridArea: "trash", color: grey[600] }
 });
 
 const mobile = 600;
 
 class Task extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = { backgroundColor: randomColor() };
+  }
+
+  componentDidMount() {}
+
   render() {
     const { classes } = this.props;
 
     return (
-      <Card className={classes.Task}>
+      <Card
+        className={classes.Task}
+        style={{ backgroundColor: this.state.backgroundColor }}
+      >
         <CardContent className={classes.TaskContent}>
           <MediaQuery minDeviceWidth={mobile}>
             <Typography
-              variant="body2"
+              variant="body1"
               color="textSecondary"
               component="p"
               className={classes.TaskText}
@@ -45,13 +58,13 @@ class Task extends React.Component {
           </MediaQuery>
           <MediaQuery maxDeviceWidth={mobile - 1}>
             <Typography
-              variant="body2"
+              variant="body1"
               color="textSecondary"
               component="p"
               className={classes.TaskText}
             >
-              {this.props.task && this.props.task.length > 30
-                ? this.props.task.slice(0, 30) + " ..."
+              {this.props.task && this.props.task.length > 25
+                ? this.props.task.slice(0, 25) + " ..."
                 : this.props.task}
             </Typography>
           </MediaQuery>

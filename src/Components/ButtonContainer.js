@@ -5,7 +5,7 @@ import AlarmIcon from "@material-ui/icons/Alarm";
 import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline";
 import PlayCircleOutlineIcon from "@material-ui/icons/PlayCircleOutline";
 import NoTask from "./NoTask";
-import { blue } from "@material-ui/core/colors";
+import { grey } from "@material-ui/core/colors";
 
 const useStyles = theme => ({
   Container: {
@@ -16,7 +16,7 @@ const useStyles = theme => ({
     textAlign: "right"
   },
   Button: {
-    color: blue[800],
+    color: grey[600],
     width: "35px",
     height: "35px",
     marginLeft: "10px"

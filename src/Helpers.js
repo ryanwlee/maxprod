@@ -81,7 +81,7 @@ export function timeToPercent(time, timeInterval) {
 export function secondsToTime(seconds) {
   const min = Math.floor(seconds / 60);
   const sec = seconds % 60;
-  return `${min}m ${sec}s`;
+  return `${min}m ${sec < 10 ? "0" + sec : sec}s`;
 }
 
 export function randomColor() {

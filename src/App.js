@@ -49,8 +49,6 @@ const useStyles = theme => ({
   }
 });
 
-const apiServerUrl = "http://127.0.0.1:4000/api/tasks";
-
 class App extends React.Component {
   constructor(props) {
     super(props);
@@ -65,7 +63,8 @@ class App extends React.Component {
       errorMsg: "",
       curTask: 0,
       seconds: 0,
-      timeInterval: 15 * 60000
+      timeInterval: 15 * 60000,
+      isPlaying: false
     };
 
     this.intervalHandle = null;
@@ -82,12 +81,14 @@ class App extends React.Component {
     this.tick = this.tick.bind(this);
     this.countdown = this.countdown.bind(this);
     this.setTimeInterval = this.setTimeInterval.bind(this);
+    this.nextTask = this.nextTask.bind(this);
+    this.pauseTask = this.pauseTask.bind(this);
     this.deleteTask = this.deleteTask.bind(this);
     this.handleDeleteIcon = this.handleDeleteIcon.bind(this);
   }
 
   async componentDidMount() {
-    const response = await fetch(apiServerUrl, {
+    const response = await fetch(process.env.REACT_APP_API_SERVER_URL, {
       headers: {
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin": "*"
@@ -129,6 +130,19 @@ class App extends React.Component {
     this.setState({ newtask });
   }
 
+  pauseTask() {
+    clearInterval(this.intervalHandle);
+    this.setState({ isPlaying: false });
+  }
+
+  nextTask() {
+    const curTask =
+      this.state.curTask + 1 === this.state.tasks.length
+        ? 0
+        : this.state.curTask + 1;
+    this.setState({ curTask, seconds: 0 });
+  }
+
   async addTask() {
     if (this.state.newtask.trim().length === 0) {
       this.setState({
@@ -147,7 +161,7 @@ class App extends React.Component {
     }
 
     const data = JSON.stringify({ task: this.state.newtask });
-    const postResponse = await fetch(apiServerUrl, {
+    const postResponse = await fetch(process.env.REACT_APP_API_SERVER_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -157,7 +171,7 @@ class App extends React.Component {
     });
     const result = await postResponse.json();
 
-    const getResponse = await fetch(apiServerUrl, {
+    const getResponse = await fetch(process.env.REACT_APP_API_SERVER_URL, {
       headers: {
         "Content-Type": "applicatio/json",
         "Access-Control-Allow-Origin": "*"
@@ -171,7 +185,8 @@ class App extends React.Component {
 
   async deleteTask() {
     const deleteResponse = await fetch(
-      apiServerUrl + `/${this.state.tasks[this.state.curTask]._id}`,
+      process.env.REACT_APP_API_SERVER_URL +
+        `/${this.state.tasks[this.state.curTask]._id}`,
       {
         method: "DELETE",
         headers: {
@@ -182,38 +197,41 @@ class App extends React.Component {
     );
     const result = await deleteResponse.json();
 
-    const getResponse = await fetch(apiServerUrl, {
+    const getResponse = await fetch(process.env.REACT_APP_API_SERVER_URL, {
       headers: {
         "Content-Type": "applicatio/json",
         "Access-Control-Allow-Origin": "*"
       }
     });
     const tasks = await getResponse.json();
-    const curTask =
-      this.state.curTask === tasks.length ? 0 : this.state.curTask;
+    const curTask = this.state.curTask >= tasks.length ? 0 : this.state.curTask;
     this.setState({ tasks, curTask, seconds: 0 });
   }
 
   async handleDeleteIcon(id) {
     console.log(id);
 
-    const deleteResponse = await fetch(apiServerUrl + `/${id}`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*"
+    const deleteResponse = await fetch(
+      process.env.REACT_APP_API_SERVER_URL + `/${id}`,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*"
+        }
       }
-    });
+    );
     const result = await deleteResponse.json();
 
-    const getResponse = await fetch(apiServerUrl, {
+    const getResponse = await fetch(process.env.REACT_APP_API_SERVER_URL, {
       headers: {
         "Content-Type": "applicatio/json",
         "Access-Control-Allow-Origin": "*"
       }
     });
     const tasks = await getResponse.json();
-    this.setState({ tasks });
+    const curTask = this.state.curTask >= tasks.length ? 0 : this.state.curTask;
+    this.setState({ tasks, curTask, seconds: 0 });
   }
 
   handleSetTimeModalOpen() {
@@ -231,7 +249,7 @@ class App extends React.Component {
 
   handlePlayTaskModalClose() {
     clearInterval(this.intervalHandle);
-    this.setState({ playTaskOpen: false });
+    this.setState({ playTaskOpen: false, isPlaying: false, seconds: 0 });
   }
 
   handleNewTaskModalOpen() {
@@ -265,8 +283,10 @@ class App extends React.Component {
 
   countdown() {
     if (this.state.tasks.length === 0) {
+      this.setState({ isPlaying: false });
       return;
     }
+    this.setState({ isPlaying: true });
     this.intervalHandle = setInterval(this.tick, 1000);
   }
 
@@ -379,6 +399,10 @@ class App extends React.Component {
                 timeToPercent(this.state.seconds, this.state.timeInterval)
               )}
               deleteTask={this.deleteTask}
+              nextTask={this.nextTask}
+              pauseTask={this.pauseTask}
+              resumeTask={this.countdown}
+              isPlaying={this.state.isPlaying}
             />
           </React.Fragment>
         </Modal>
