@@ -4,10 +4,13 @@ import { Button, Modal, TextField, Typography } from "@material-ui/core";
 import Task from "./Components/Task";
 import Header from "./Components/Header";
 import SetTimeModal from "./Components/SetTimeModal";
-import ButtonContainer from "./Components/ButtonContainer";
+import TaskContainer from "./Components/TaskContainer";
+import ErrorContainer from "./Components/ErrorContainer";
 import PlayTaskModal from "./Components/PlayTaskModal";
 import "react-sweet-progress/lib/style.css";
-import { red } from "@material-ui/core/colors";
+import { red, grey } from "@material-ui/core/colors";
+import Spinner from "./Svg/grid.svg";
+import Spinner2 from "./Svg/spinning-circles.svg";
 
 import {
   progressColor,
@@ -46,6 +49,21 @@ const useStyles = theme => ({
     height: "60px",
     marginLeft: "20px",
     marginTop: "5px"
+  },
+  LoadingModal: {
+    backgroundColor: grey[100],
+    textAlign: "center"
+  },
+  LoadingModal2: {
+    textAlign: "center"
+  },
+  Spinner: {
+    marginTop: "300px",
+    outline: "none"
+  },
+  Spinner2: {
+    marginTop: "300px",
+    outline: "none"
   }
 });
 
@@ -64,7 +82,12 @@ class App extends React.Component {
       curTask: 0,
       seconds: 0,
       timeInterval: 15 * 60000,
-      isPlaying: false
+      isPlaying: false,
+      getError: false,
+      postError: false,
+      loading: true,
+      taskLoading: false,
+      errorModal: false
     };
 
     this.intervalHandle = null;
@@ -85,6 +108,8 @@ class App extends React.Component {
     this.pauseTask = this.pauseTask.bind(this);
     this.deleteTask = this.deleteTask.bind(this);
     this.handleDeleteIcon = this.handleDeleteIcon.bind(this);
+    this.loadingModalOpen = this.loadingModalOpen.bind(this);
+    this.loadingModalClose = this.loadingModalClose.bind(this);
   }
 
   async componentDidMount() {
@@ -94,8 +119,12 @@ class App extends React.Component {
         "Access-Control-Allow-Origin": "*"
       }
     });
+    if (response.status !== 200) {
+      this.setState({ getError: true, loading: false });
+      return;
+    }
     const tasks = await response.json();
-    this.setState({ tasks });
+    this.setState({ tasks, loading: false, getError: false });
   }
 
   taskPlaceholderChooser() {
@@ -160,6 +189,8 @@ class App extends React.Component {
       return;
     }
 
+    this.setState({ taskLoading: true });
+
     const data = JSON.stringify({ task: this.state.newtask });
     const postResponse = await fetch(process.env.REACT_APP_API_SERVER_URL, {
       method: "POST",
@@ -169,6 +200,14 @@ class App extends React.Component {
       },
       body: data
     });
+    if (postResponse.status !== 200) {
+      this.setState({
+        taskIsNotValid: true,
+        errorMsg: "Something went wrong. Try again",
+        taskLoading: false
+      });
+      return;
+    }
     const result = await postResponse.json();
 
     const getResponse = await fetch(process.env.REACT_APP_API_SERVER_URL, {
@@ -177,13 +216,29 @@ class App extends React.Component {
         "Access-Control-Allow-Origin": "*"
       }
     });
+    if (getResponse.status !== 200) {
+      this.setState({
+        taskIsNotValid: true,
+        errorMsg: "Something went wrong. Please Try again",
+        taskLoading: false
+      });
+      return;
+    }
     const tasks = await getResponse.json();
-    this.setState({ tasks, newtask: "", taskIsNotValid: false });
+
+    this.setState({
+      tasks,
+      newtask: "",
+      taskIsNotValid: false,
+      taskLoading: false
+    });
 
     this.handleNewTaskModalClose();
   }
 
   async deleteTask() {
+    this.setState({ taskLoading: true });
+    clearInterval(this.intervalHandle);
     const deleteResponse = await fetch(
       process.env.REACT_APP_API_SERVER_URL +
         `/${this.state.tasks[this.state.curTask]._id}`,
@@ -195,6 +250,13 @@ class App extends React.Component {
         }
       }
     );
+    if (deleteResponse.status !== 200) {
+      this.setState({
+        errorModal: true,
+        taskLoading: true
+      });
+      return;
+    }
     const result = await deleteResponse.json();
 
     const getResponse = await fetch(process.env.REACT_APP_API_SERVER_URL, {
@@ -203,14 +265,22 @@ class App extends React.Component {
         "Access-Control-Allow-Origin": "*"
       }
     });
+    if (getResponse.status !== 200) {
+      this.setState({
+        errorModal: true,
+        taskLoading: true
+      });
+      return;
+    }
     const tasks = await getResponse.json();
+
     const curTask = this.state.curTask >= tasks.length ? 0 : this.state.curTask;
-    this.setState({ tasks, curTask, seconds: 0 });
+    this.setState({ tasks, curTask, seconds: 0, taskLoading: false });
+    this.countdown();
   }
 
   async handleDeleteIcon(id) {
-    console.log(id);
-
+    this.setState({ taskLoading: true });
     const deleteResponse = await fetch(
       process.env.REACT_APP_API_SERVER_URL + `/${id}`,
       {
@@ -221,6 +291,13 @@ class App extends React.Component {
         }
       }
     );
+    if (deleteResponse.status !== 200) {
+      this.setState({
+        errorModal: true,
+        taskLoading: true
+      });
+      return;
+    }
     const result = await deleteResponse.json();
 
     const getResponse = await fetch(process.env.REACT_APP_API_SERVER_URL, {
@@ -229,10 +306,23 @@ class App extends React.Component {
         "Access-Control-Allow-Origin": "*"
       }
     });
+    if (getResponse.status !== 200) {
+      this.setState({
+        errorModal: true,
+        taskLoading: true
+      });
+      return;
+    }
     const tasks = await getResponse.json();
     const curTask = this.state.curTask >= tasks.length ? 0 : this.state.curTask;
-    this.setState({ tasks, curTask, seconds: 0 });
+    this.setState({ tasks, curTask, seconds: 0, taskLoading: false });
   }
+
+  loadingModalOpen() {
+    this.setState({ loading: true });
+  }
+
+  loadingModalClose() {}
 
   handleSetTimeModalOpen() {
     this.setState({ setTimeOpen: true });
@@ -296,20 +386,61 @@ class App extends React.Component {
 
   render() {
     const { classes } = this.props;
-
     return (
       <div>
         {/* title and subtitle */}
         <Header />
 
+        <Modal
+          aria-labelledby="simple-modal-title"
+          aria-describedby="simple-modal-description"
+          open={this.state.loading}
+          onClose={this.loadingModalClose}
+          className={classes.LoadingModal}
+        >
+          <img src={Spinner} className={classes.Spinner} alt={"spinner"} />
+        </Modal>
+
+        <Modal
+          aria-labelledby="simple-modal-title"
+          aria-describedby="simple-modal-description"
+          open={this.state.taskLoading}
+          onClose={this.loadingModalClose}
+          className={classes.LoadingModal2}
+        >
+          {this.state.errorModal ? (
+            <React.Fragment>
+              <Typography
+                variant="h6"
+                component="p"
+                style={{ marginTop: "300px", color: red[600] }}
+              >
+                Something went wrong.
+              </Typography>
+              <Typography
+                variant="h6"
+                component="p"
+                style={{ marginTop: "10px", color: red[600] }}
+              >
+                Please start again.
+              </Typography>
+            </React.Fragment>
+          ) : (
+            <img src={Spinner2} className={classes.Spinner2} alt={"spinner"} />
+          )}
+        </Modal>
+
         {/* buttons container */}
-        <ButtonContainer
-          handleSetTimeModalOpen={this.handleSetTimeModalOpen}
-          handleNewTaskModalOpen={this.handleNewTaskModalOpen}
-          handlePlayTaskModalOpen={this.handlePlayTaskModalOpen}
-          displayTasks={this.displayTasks}
-          taskLength={this.state.tasks.length}
-        />
+        {!this.state.loading && this.state.getError && <ErrorContainer />}
+        {!this.state.loading && !this.state.getError && (
+          <TaskContainer
+            handleSetTimeModalOpen={this.handleSetTimeModalOpen}
+            handleNewTaskModalOpen={this.handleNewTaskModalOpen}
+            handlePlayTaskModalOpen={this.handlePlayTaskModalOpen}
+            displayTasks={this.displayTasks}
+            taskLength={this.state.tasks.length}
+          />
+        )}
 
         {/* hidden modal for setting time interval (default 15 mins) */}
         <Modal

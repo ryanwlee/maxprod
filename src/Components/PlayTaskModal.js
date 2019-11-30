@@ -24,7 +24,8 @@ const useStyles = theme => ({
     height: "120px",
     overflowWrap: "break-word",
     display: "table-cell",
-    verticalAlign: "middle"
+    verticalAlign: "middle",
+    wordBreak: "break-all"
   },
   PlayTaskBodyWrapper: {
     display: "table",

@@ -23,7 +23,7 @@ const useStyles = theme => ({
   }
 });
 
-class ButtonContainer extends React.Component {
+class TaskContainer extends React.Component {
   render() {
     const { classes } = this.props;
 
@@ -49,4 +49,4 @@ class ButtonContainer extends React.Component {
   }
 }
 
-export default withStyles(useStyles)(ButtonContainer);
+export default withStyles(useStyles)(TaskContainer);

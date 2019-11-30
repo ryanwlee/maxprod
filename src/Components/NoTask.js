@@ -23,7 +23,9 @@ class NoTask extends React.Component {
       <Card className={classes.Task}>
         <CardContent className={classes.TaskContent}>
           <Typography variant="body2" component="p">
-            No task. Let's add new task!
+            {this.props.error
+              ? "Something went wrong. Please start again."
+              : "No task. Let's add new task!"}
           </Typography>
         </CardContent>
       </Card>
