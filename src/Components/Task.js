@@ -21,7 +21,7 @@ const useStyles = theme => ({
   TaskText: {
     gridArea: "task"
   },
-  DeleteIcon: { gridArea: "trash", color: grey[600] }
+  DeleteIcon: { gridArea: "trash", color: grey[600], cursor: "pointer" }
 });
 
 const mobile = 600;

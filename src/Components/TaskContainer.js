@@ -19,7 +19,8 @@ const useStyles = theme => ({
     color: grey[600],
     width: "35px",
     height: "35px",
-    marginLeft: "10px"
+    marginLeft: "10px",
+    cursor: "pointer"
   }
 });
 

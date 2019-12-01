@@ -126,7 +126,7 @@ class App extends React.Component {
     const tasks = await response.json();
     setTimeout(() => {
       this.setState({ tasks, loading: false, getError: false });
-    }, 3000);
+    }, 2000);
   }
 
   taskPlaceholderChooser() {
