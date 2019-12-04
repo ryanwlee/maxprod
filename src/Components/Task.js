@@ -19,7 +19,8 @@ const useStyles = theme => ({
     gridTemplateAreas: '"task trash"'
   },
   TaskText: {
-    gridArea: "task"
+    gridArea: "task",
+    cursor: "default"
   },
   DeleteIcon: { gridArea: "trash", color: grey[600], cursor: "pointer" }
 });
@@ -50,6 +51,7 @@ class Task extends React.Component {
               color="textSecondary"
               component="p"
               className={classes.TaskText}
+              onClick={() => this.props.displayTask(this.props.id)}
             >
               {this.props.task && this.props.task.length > 45
                 ? this.props.task.slice(0, 45) + " ..."
@@ -62,6 +64,7 @@ class Task extends React.Component {
               color="textSecondary"
               component="p"
               className={classes.TaskText}
+              onClick={() => this.onClickHandler(this.props.id)}
             >
               {this.props.task && this.props.task.length > 25
                 ? this.props.task.slice(0, 25) + " ..."

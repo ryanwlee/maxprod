@@ -110,6 +110,7 @@ class App extends React.Component {
     this.handleDeleteIcon = this.handleDeleteIcon.bind(this);
     this.loadingModalOpen = this.loadingModalOpen.bind(this);
     this.loadingModalClose = this.loadingModalClose.bind(this);
+    this.displayTask = this.displayTask.bind(this);
   }
 
   async componentDidMount() {
@@ -126,7 +127,7 @@ class App extends React.Component {
     const tasks = await response.json();
     setTimeout(() => {
       this.setState({ tasks, loading: false, getError: false });
-    }, 2000);
+    }, 1000);
   }
 
   taskPlaceholderChooser() {
@@ -149,6 +150,7 @@ class App extends React.Component {
             task={task.task}
             delete={this.handleDeleteIcon}
             id={task._id}
+            displayTask={this.displayTask}
           />
         );
       })
@@ -159,6 +161,14 @@ class App extends React.Component {
 
   onChangeTask(newtask) {
     this.setState({ newtask });
+  }
+
+  displayTask(id) {
+    let taskIndex = this.state.tasks.findIndex(task => {
+      return task._id === id;
+    });
+    this.setState({ curTask: taskIndex });
+    this.handlePlayTaskModalOpen();
   }
 
   pauseTask() {
